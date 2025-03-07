@@ -1,4 +1,4 @@
-import TaskRunner from '../src/scheduler';
+import TaskRunner from '../src/index';
 
 describe('TaskRunner', () => {
   beforeEach(() => jest.useFakeTimers());
@@ -20,8 +20,8 @@ describe('TaskRunner', () => {
     const mockTask = jest.fn();
     const runner = new TaskRunner({ concurrency: 2 });
 
-    runner.add(() => new Promise((r) => setTimeout(r, 10)));
-    runner.add(() => new Promise((r) => setTimeout(r, 10)));
+    runner.add(() => new Promise(r => setTimeout(r, 10)));
+    runner.add(() => new Promise(r => setTimeout(r, 10)));
     runner.add(mockTask);
 
     await jest.advanceTimersByTimeAsync(0);

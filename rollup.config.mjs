@@ -1,26 +1,20 @@
 import typescript from '@rollup/plugin-typescript';
 
-const formats = {
-    esm: {
-        format: 'esm',
-        dir: 'dist/esm'
-    },
-    cjs: {
-        format: 'cjs',
-        dir: 'dist/cjs'
-    }
-};
-
 export default {
-    input: 'src/index.ts',
-    output: formats[process.env.FORMAT],
-    plugins: [
-        typescript({
-            outputToFilesystem: true,
-            compilerOptions: {
-                module: process.env.FORMAT === 'esm' ? 'ESNext' : 'CommonJS'
-            }
-        })
-    ],
-    external: []
+  input: 'src/index.ts',
+  // output: formats[process.env.FORMAT],
+  output: [
+    {
+      file: 'dist/cjs/index.js',
+      format: 'cjs',
+      exports: 'named'
+    },
+    {
+      file: 'dist/esm/index.mjs',
+      format: 'es',
+    }
+  ],
+  plugins: [
+    typescript(),
+  ],
 };
