@@ -96,6 +96,7 @@ export class TaskRunner {
   private queue: PriorityQueue<QueuedTask>;
   private activeTasks = 0;
   private pendingCount = 0;
+  private waitingReTry = 0;
   private isSuspended = false;
   private isScheduled = false;
   private nextSeq = 0; // 序列号生成器
@@ -118,12 +119,13 @@ export class TaskRunner {
    * 添加任务到队列
    * @param task 要执行的任务
    * @param priority 优先级（数值越大优先级越高）
+   * @param retries 重试了几次
    */
-  add(task: Task, priority = 0): void {
+  add(task: Task, priority = 0, retries = 0): void {
     this.queue.push({
       task,
       priority,
-      retries: 0,
+      retries,
       seq: this.nextSeq++, // 分配递增序列号
     });
     this.pendingCount++;
@@ -190,21 +192,16 @@ export class TaskRunner {
 
   /** 重试任务 */
   private retryTask(taskInfo: { task: Task; priority: number; retries: number }): void {
+    this.waitingReTry++;
     setTimeout(() => {
-      if (this.isSuspended) return;
-      this.queue.push({
-        ...taskInfo,
-        retries: taskInfo.retries + 1,
-        seq: this.nextSeq++,
-      });
-      this.pendingCount++;
-      this.schedule();
+      this.add(taskInfo.task, taskInfo.priority, taskInfo.retries + 1);
+      this.waitingReTry--;
     }, this.options.retryDelay ?? 0);
   }
 
   /** 检查所有任务是否完成 */
   private checkCompletion(): void {
-    if (this.activeTasks === 0 && this.pendingCount === 0) {
+    if (this.activeTasks === 0 && this.pendingCount === 0 && this.waitingReTry === 0) {
       this.options.onAllComplete?.();
     }
   }
